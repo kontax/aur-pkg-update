@@ -51,7 +51,7 @@ aws s3 sync \
     --region ${region} \
     --acl public-read \
     --follow-symlinks \
-    ${local_path}/ s3://${remote_path}
+    ${local_path}/ ${remote_path}/
 
 
 echo "Notify of built packages"
