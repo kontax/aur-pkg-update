@@ -1,9 +1,9 @@
-#AUR PKG UPDATE
+# AUR PKG UPDATE
 
 Periodically updates an AUR repository stored in S3 within a Docker container, and notifies of 
 updates via Pushover.
 
-##Prerequisites
+## Prerequisites
 
 * Pushover API Access
 * AWS
