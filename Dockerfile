@@ -14,6 +14,11 @@ RUN pacman -Syu --noconfirm --needed \
 # Non-root user used to build packages
 RUN useradd -d /build makepkg && mkdir /build && chown -R makepkg:users /build
 
+# Make xz compression use all available cores
+RUN sed -E -i \
+    's/COMPRESSXZ.*/COMPRESSXZ=(xz -c -z - --threads=0)/g; \
+     s/(#)?MAKEFLAGS.*/MAKEFLAGS="-j$(nproc)"/g' /etc/makepkg.conf
+
 # Pull aurutils from AUR
 RUN sudo -u makepkg git clone --depth 1 https://aur.archlinux.org/aurutils.git /build
 RUN cd /build && sudo -u makepkg makepkg --noconfirm -sif
@@ -22,3 +27,4 @@ RUN cd /build && sudo -u makepkg makepkg --noconfirm -sif
 ADD send-pushover /send-pushover
 ADD aursync /aursync
 ENTRYPOINT ["/aursync"]
+
