@@ -1,0 +1,14 @@
+language: generic
+
+sudo: required
+
+services:
+  - docker
+
+install:
+  - docker pull archlinux/base:latest
+
+script:
+  - docker build . -t $DOCKER_USER/aur-pkg-update
+  - docker login -u $DOCKER_USER -p "$DOCKER_PASS"
+  - docker push $DOCKER_USER/aur-pkg-update
