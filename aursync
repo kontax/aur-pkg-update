@@ -1,0 +1,69 @@
+#!/bin/bash
+#
+# aursync
+# 
+# Updates a repository stored in S3 and notifies of any package updates
+#
+
+
+set -uo pipefail
+trap 's=$?; /send-pushover "Update Error" "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
+IFS=$'\n\t'
+
+remote_path=${REMOTE_PATH}                                  # Location within S3
+repo_name=${REPO_NAME}                                      # Name of the repo (the DB file)
+region=${AWS_REGION}                                        # AWS region
+local_path=$(echo $remote_path | sed 's|s3:/||g')           # Location stored within the container
+
+mkdir -p "$local_path"
+
+
+echo "Sync remote DB to local"
+aws s3 sync \
+    --region ${region} \
+    --acl public-read \
+    --exclude "*" \
+    --include "*files.tar.xz" \
+    --include "*db.tar.xz" \
+    ${remote_path}/ ${local_path}/
+
+ln -sf "$repo_name.db.tar.xz" "$local_path/$repo_name.db"
+ln -sf "$repo_name.files.tar.xz" "$local_path/$repo_name.files"
+
+
+echo "Add repo to pacman.conf"
+cat >> /etc/pacman.conf << EOF
+[${repo_name}]
+Server = file://${local_path}
+SigLevel = Optional TrustAll
+EOF
+pacman -Sy
+
+
+pkgs=$(aur repo -Su -d $repo_name)
+echo "Upgrading packages"
+sudo chown -R makepkg:users "$local_path"
+sudo -u makepkg aur sync --no-view -d "$repo_name" --root "$local_path" -u --noconfirm || true
+
+
+echo "Sync local DB to remote"
+aws s3 sync \
+    --region ${region} \
+    --acl public-read \
+    --follow-symlinks \
+    ${local_path}/ s3://${remote_path}
+
+
+echo "Notify of built packages"
+for pkg in $pkgs
+do
+    IFS=':'
+    read -ra ADDR <<< "$pkg"
+    IFS=$'\n\t'
+
+    pkg_name=${ADDR[0]}
+    pkg_ver=${ADDR[1]}
+
+    /send-pushover "Updated ${pkg_name}" "${pkg_ver}"
+done
+

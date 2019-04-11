@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# 
+# send-pushover
+#
+# Sends a notification message to a pushover client via their API
+#
+
+pushover_token=${PUSHOVER_TOKEN}        # API Key used for the pushover application
+pushover_user=${PUSHOVER_USER}          # User key for pushover notifications
+
+set -e
+
+if [ "$#" -ne 2 ]; then
+  echo -e "Usage: pushover-send <title> <message>"
+  exit 1
+fi
+
+title=$1
+message=$2
+
+curl -s \
+    --form-string "token=${pushover_token}" \
+    --form-string "user=${pushover_user}" \
+    --form-string "title=${title}" \
+    --form-string "message=${message}" \
+    "https://api.pushover.net/1/messages.json"
