@@ -49,7 +49,7 @@ echo "Cleaning up old packages..."
 old_files=$(aws s3 ls "$remote_path/" | awk '{print $4}' | grep pkg.tar.xz | grep -Fvf \
     <(tar --exclude="*/*" -Jtf "$local_path/$repo_name.db.tar.xz" | sed 's|/||g'))
 
-for file in old_files; do
+for file in $old_files; do
     aws s3 rm \
         --region ${region} \
         "$remote_path/$file"
