@@ -8,6 +8,7 @@
 
 set -uo pipefail
 trap 's=$?; /send-pushover "Update Error" "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
+#trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 IFS=$'\n\t'
 
 remote_path=${REMOTE_PATH}                                  # Location within S3
@@ -45,9 +46,21 @@ echo "Upgrading packages"
 sudo chown -R makepkg:users "$local_path"
 sudo -u makepkg aur sync --no-view -d "$repo_name" --root "$local_path" -u --noconfirm || true
 
+
+# Clean up unnecessary packages
+OLDIFS=$IFS
+IFS=' '
+echo "Removing packages in the official repo"
+official=$(pacman -Sl | grep -v "$repo_name" | cut -d' ' -f2 | sort)
+personal=$(aur repo -r "$local_path" -d "$repo_name" -l | awk '{print $1}' | sort)
+packages_to_remove=$(comm -12 <(echo $official) <(echo $personal))
+IFS=$OLDIFS
+
+sudo -u makepkg repo-remove "$local_path/$repo_name.db.tar.xz" $packages_to_remove
+
 echo "Cleaning up old packages..."
 old_files=$(aws s3 ls "$remote_path/" | awk '{print $4}' | grep pkg.tar.xz | grep -Fvf \
-    <(tar --exclude="*/*" -Jtf "$local_path/$repo_name.db.tar.xz" | sed 's|/||g') || true)
+    <(tar --exclude="*/*" -Jtf "$local_path/$repo_name.db.tar.xz" 2>/dev/null | sed 's|/||g') || true)
 
 for file in $old_files; do
     aws s3 rm \
