@@ -66,7 +66,7 @@ personal=$(aur repo -r "$local_path" -d "$repo_name" -l | awk '{print $1}' | sor
 packages_to_remove=$(comm -12 <(echo $official) <(echo $personal))
 IFS=$OLDIFS
 
-sudo -u makepkg repo-remove "$local_path/$repo_name.db.tar.xz" $packages_to_remove
+sudo -u makepkg repo-remove "$local_path/$repo_name.db.tar.xz" $packages_to_remove -s
 
 echo "Cleaning up old packages..."
 old_files=$(aws s3 ls "$remote_path/" | awk '{print $4}' | grep pkg.tar.xz | grep -Fvf \
