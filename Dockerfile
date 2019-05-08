@@ -27,4 +27,3 @@ RUN cd /build && sudo -u makepkg makepkg --noconfirm -sif
 ADD send-pushover /send-pushover
 ADD aursync /aursync
 ENTRYPOINT ["/aursync"]
-
