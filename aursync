@@ -31,10 +31,8 @@ mkdir -p "$local_path"
 aws ssm get-parameter --region "${region}" --name "${aur_key}" --with-decryption | jq -r ".Parameter.Value" > aur.key
 sudo -u makepkg gpg --import aur.key
 gpg --homedir /etc/pacman.d/gnupg --import aur.key
+GPGKEY=$(sudo -u makepkg gpg --show-keys --keyid-format LONG | grep sec | grep -o -P '(?<=/)[A-Z0-9]{16}')
 rm aur.key
-GPGKEY=$(sudo -u makepkg gpg --list-keys --keyid-format LONG | grep pub | grep -o -P '(?<=/)[A-Z0-9]{16}')
-#pacman-key --add <(sudo -u makepkg gpg --export "${GPGKEY}")
-#pacman-key --keyserver keys.gnupg.net -r "${GPGKEY}"
 pacman-key --lsign-key "${GPGKEY}"
 
 
