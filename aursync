@@ -55,7 +55,7 @@ cat >> /etc/pacman.conf << EOF
 Server = file://${local_path}
 SigLevel = Optional TrustAll
 EOF
-pacman -Sy
+pacman -Syy
 
 
 pkgs=$(aur repo -Su -d $repo_name)
