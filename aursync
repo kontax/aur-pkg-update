@@ -61,7 +61,7 @@ pacman -Syy
 pkgs=$(aur repo -Su -d $repo_name)
 echo "Upgrading packages"
 sudo chown -R makepkg:users "$local_path"
-sudo -u makepkg aur sync -s --no-view -d "$repo_name" --root "$local_path" -u --noconfirm || true
+sudo -u makepkg aur sync -S --no-view -d "$repo_name" --root "$local_path" -u --noconfirm || true
 failed_pkgs=$(aur repo -Su -d $repo_name)
 
 
