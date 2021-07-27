@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/kontax/aur-pkg-update.svg?branch=master)](https://travis-ci.org/kontax/aur-pkg-update)
+[![Build Status](https://travis-ci.com/kontax/aur-pkg-update.svg?branch=master)](https://travis-ci.com/kontax/aur-pkg-update)
 
 # AUR Pkg Update
 
