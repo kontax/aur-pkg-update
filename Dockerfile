@@ -1,4 +1,4 @@
-FROM archlinux/base:latest
+FROM archlinux:base
 
 # Set up base files
 COPY sudoers /etc/sudoers
@@ -21,10 +21,11 @@ RUN sed -E -i \
 
 # Pull aurutils from AUR
 RUN sudo -u makepkg git clone --depth 1 https://aur.archlinux.org/aurutils.git /build
-RUN sudo -u makepkg gpg --recv-keys 6BC26A17B9B7018A 
+#RUN sudo -u makepkg gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys 6BC26A17B9B7018A
 RUN cd /build && sudo -u makepkg makepkg --noconfirm -sif
 
 # Scripts
 ADD send-pushover /send-pushover
 ADD aursync /aursync
 ENTRYPOINT ["/aursync"]
+#CMD ["/bin/bash"]

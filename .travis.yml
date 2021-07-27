@@ -6,7 +6,7 @@ services:
   - docker
 
 install:
-  - docker pull archlinux/base:latest
+  - docker pull archlinux:base
 
 script:
   - docker build . -t $DOCKER_USER/aur-pkg-update
