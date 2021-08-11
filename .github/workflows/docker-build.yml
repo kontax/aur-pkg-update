@@ -1,0 +1,21 @@
+name: Docker Build and Push
+
+on:
+  schedule:
+    - cron: '0 0 0/7 * *'
+  push:
+    branches: [ master ]
+
+env:
+  DOCKER_USER: ${{ secrets.DOCKER_USER }}
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: docker build . --tag $DOCKER_USER/aur-pkg-update
