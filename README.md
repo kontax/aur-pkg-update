@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/kontax/aur-pkg-update.svg?branch=master)](https://travis-ci.com/kontax/aur-pkg-update)
+[![Docker Build and Push](https://github.com/kontax/aur-pkg-update/actions/workflows/docker-build.yml/badge.svg)](https://github.com/kontax/aur-pkg-update/actions/workflows/docker-build.yml)
 
 # AUR Pkg Update
 
