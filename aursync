@@ -78,7 +78,7 @@ sudo -u makepkg repo-remove "$local_path/$repo_name.db.tar.zst" $packages_to_rem
 
 echo "Cleaning up old packages..."
 old_files=$(aws s3 ls "$remote_path/" | awk '{print $4}' | grep pkg.tar.zst | grep -Fvf \
-    <(tar --exclude="*/*" -Jtf "$local_path/$repo_name.db.tar.zst" 2>/dev/null | sed 's|/||g') || true)
+    <(tar --exclude="*/*" --zstd -tf "$local_path/$repo_name.db.tar.zst" 2>/dev/null | sed 's|/||g') || true)
 
 for file in $old_files; do
     aws s3 rm \
