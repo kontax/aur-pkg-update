@@ -42,7 +42,7 @@ sudo -u makepkg gpg --recv-keys $(
         --region ${region} \
         --name ${aur_keys} |
         jq -r ".Parameter.Value" |
-        sed 's/,/ /g'
+        sed 's/,/\n\t/g'
 )
 
 
