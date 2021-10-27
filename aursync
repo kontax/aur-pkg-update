@@ -37,12 +37,12 @@ rm aur.key
 pacman-key --lsign-key "${GPGKEY}"
 
 # Also import public keys used to verify some packages
-gpg --recv-keys $(
+sudo -u makepkg gpg --recv-keys $(
     aws ssm get-parameter \
         --region ${region} \
         --name ${aur_keys} |
         jq -r ".Parameter.Value" |
-        sed 's/,/ /g'
+        sed 's/,/\n\t/g'
 )
 
 
