@@ -122,6 +122,6 @@ do
     pkg_name=${ADDR[0]}
     pkg_ver=${ADDR[1]}
 
-    /send-pushover "${msg_status} ${pkg_name}" "${pkg_ver}"
+    /send-pushover "${repo_name}: ${msg_status} ${pkg_name}" "${pkg_ver}"
 done
 
