@@ -17,6 +17,7 @@ region=${AWS_REGION}                                        # AWS region
 local_path=$(echo $remote_path | sed 's|s3:/||g')           # Location stored within the container
 aur_key=${AUR_KEY}                                          # Name of GPG signing key within AWS parameter store
 aur_keys=${AUR_KEYS}                                        # Name of public keys within the parameter store
+bucket=$(echo $local_path | sed 's|/\(.*\)/.*|\1|g')        # Name of the bucket
 
 # Function to check if an array contains a string
 containsElement () {
@@ -122,6 +123,6 @@ do
     pkg_name=${ADDR[0]}
     pkg_ver=${ADDR[1]}
 
-    /send-pushover "${repo_name}: ${msg_status} ${pkg_name}" "${pkg_ver}"
+    /send-pushover "${bucket}: ${msg_status} ${pkg_name}" "${pkg_ver}"
 done
 
