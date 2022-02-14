@@ -109,6 +109,7 @@ aws s3 sync \
 echo "Notify of built packages"
 for pkg in $pkgs
 do
+    echo "${pkg}"
     msg_status=""
     if containsElement "$pkg" "${failed_pkgs[@]}"; then
         msg_status="Failed update for"
@@ -116,12 +117,12 @@ do
         msg_status="Updated"
     fi
 
-    IFS=':'
+    IFS=' '
     read -ra ADDR <<< "$pkg"
     IFS=$'\n\t'
 
     pkg_name=${ADDR[0]}
-    pkg_ver=${ADDR[1]}
+    pkg_ver="${ADDR[1]} -> ${ADDR[3]}"
 
     /send-pushover "${bucket}: ${msg_status} ${pkg_name}" "${pkg_ver}"
 done
