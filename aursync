@@ -71,6 +71,25 @@ pacman -Syy
 
 pkgs=$(aur repo -Su -d $repo_name)
 echo "Upgrading packages"
+
+# Get any dependencies that are within the local repo
+#TODO: Can probably replace this by having a remote and local repo
+pkg_names=$(aur repo -Su -d $repo_name | awk '{print $1}')
+for pkg in $pkg_names
+do
+    echo "Pulling dependencies in local repo"
+    deps=$(comm -12 <(aur depends $pkg | sort) <(aur repo -a | awk '{print $1}' | sort))
+    for dep in $deps
+    do
+        aws s3 sync \
+            --region ${region} \
+            --acl public-read \
+            --exclude "*" \
+            --include "$dep*" \
+            ${remote_path}/ ${local_path}/
+    done
+done
+
 sudo chown -R makepkg:users "$local_path"
 sudo -u makepkg aur sync -S --no-view -d "$repo_name" --root "$local_path" -u --noconfirm || true
 failed_pkgs=$(aur repo -Su -d $repo_name)
