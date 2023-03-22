@@ -1,14 +1,32 @@
 #!/bin/bash
 #
 # aursync
-# 
+#
 # Updates a repository stored in S3 and notifies of any package updates
 #
 
+exec 2> >(tee "/cmd_errors.log" >&2)
+set -Euo pipefail
 
-set -uo pipefail
-trap 's=$?; /send-pushover "Update Error" "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
-#trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
+err_report() {
+    local parent_lineno="$1"
+    local message="$2"
+    local code="${3:-1}"
+
+    echo "err_report for aursync"
+    if [[ -n "$message" ]]; then
+        echo "$0: ${parent_lineno}: $message; exiting with ${code}" >> /err.log
+    else
+        echo "$0: ${parent_lineno}; exiting with ${code}" >> /err.log
+    fi
+    # Prepend the latest error message to the log
+    printf '%s\n%s\n' "$(tail -1 /cmd_errors.log)" "$(cat /err.log)" > /err.log
+
+    /send-pushover "${pkg} Build Error" "$(cat /err.log)"
+    exit ${code}
+}
+
+trap 'err_report ${LINENO} "${BASH_COMMAND}" $?' ERR
 IFS=$'\n\t'
 
 remote_path=${REMOTE_PATH}                                  # Location within S3
@@ -18,14 +36,6 @@ local_path=$(echo $remote_path | sed 's|s3:/||g')           # Location stored wi
 aur_key=${AUR_KEY}                                          # Name of GPG signing key within AWS parameter store
 aur_keys=${AUR_KEYS}                                        # Name of public keys within the parameter store
 bucket=$(echo $local_path | sed 's|/\(.*\)/.*|\1|g')        # Name of the bucket
-
-# Function to check if an array contains a string
-containsElement () {
-  local e match="$1"
-  shift
-  for e; do [[ "$e" == "$match" ]] && return 0; done
-  return 1
-}
 
 mkdir -p "$local_path"
 
@@ -77,10 +87,11 @@ echo "Upgrading packages"
 pkg_names=$(aur repo -Su -d $repo_name | awk '{print $1}')
 for pkg in $pkg_names
 do
-    echo "Pulling dependencies in local repo"
-    deps=$(comm -12 <(aur depends $pkg | sort) <(aur repo -a | awk '{print $1}' | sort))
+    echo "Pulling dependencies for ${pkg} in local repo"
+    deps=$(comm -12 <(aur depends $pkg | awk '{print $2}' | sort) <(aur repo -a | awk '{print $1}' | sort))
     for dep in $deps
     do
+        echo "Pulling ${dep} as a dependency of ${pkg}"
         aws s3 sync \
             --region ${region} \
             --acl public-read \
@@ -130,7 +141,7 @@ for pkg in $pkgs
 do
     echo "${pkg}"
     msg_status=""
-    if containsElement "$pkg" "${failed_pkgs[@]}"; then
+    if [[ $failed_pkgs =~ $pkg ]]; then
         msg_status="Failed update for"
     else
         msg_status="Updated"
