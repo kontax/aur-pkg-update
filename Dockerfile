@@ -9,7 +9,8 @@ RUN pacman -Syu --noconfirm --needed \
     base-devel \
     git \
     devtools \
-    aws-cli
+    aws-cli \
+    jq
 
 # Non-root user used to build packages
 RUN useradd -d /build makepkg && mkdir /build && chown -R makepkg:users /build

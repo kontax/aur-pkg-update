@@ -22,7 +22,7 @@ err_report() {
     # Prepend the latest error message to the log
     printf '%s\n%s\n' "$(tail -1 /cmd_errors.log)" "$(cat /err.log)" > /err.log
 
-    /send-pushover "${pkg} Build Error" "$(cat /err.log)"
+    /send-pushover "Build Error" "$(cat /err.log)"
     exit ${code}
 }
 
