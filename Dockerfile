@@ -10,7 +10,8 @@ RUN pacman -Syu --noconfirm --needed \
     git \
     devtools \
     aws-cli \
-    jq
+    jq \
+    python-setuptools
 
 # Non-root user used to build packages
 RUN useradd -d /build makepkg && mkdir /build && chown -R makepkg:users /build
