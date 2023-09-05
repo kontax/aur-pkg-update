@@ -4,6 +4,11 @@ FROM archlinux:base
 COPY sudoers /etc/sudoers
 COPY mirrorlist /etc/pacman.d/mirrorlist
 
+# Update keychain
+RUN pacman-key --init && \
+    pacman-key --populate && \
+    pacman -Sy --noconfirm archlinux-keyring
+
 # Install base packages
 RUN pacman -Syu --noconfirm --needed \
     base-devel \
