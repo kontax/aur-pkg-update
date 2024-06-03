@@ -125,6 +125,7 @@ for file in $old_files; do
     aws s3 rm \
         --region ${region} \
         "$remote_path/$file"
+    rm "$local_path/$file"
 done
 
 
