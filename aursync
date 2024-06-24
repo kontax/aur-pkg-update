@@ -78,12 +78,49 @@ SigLevel = Optional TrustAll
 EOF
 pacman -Syy
 
+###
+# Remove unused packages from the repository
+##
+
+unset IFS
+
+# Get a list of all currently used packages
+max_version=$(pacman -Sl $repo_name | grep ' couldinho-' | cut -d' ' -f3 | sort -r | head -1)
+metapackages=$(pacman -Sl $repo_name | awk "/ couldinho-/ && /$max_version/" | cut -d ' ' -f2)
+all_pkg_list=$(pacman -Sl $repo_name | cut -d' ' -f2 | sort | uniq)
+
+# Function for recursively pulling dependencies from a specified package
+rec () {
+  echo "$1"
+  for dep in $(pacman -Si $1 2>/dev/null | awk -F':' '/Depends On/ { print $2 }')
+  do
+      if [[ $all_pkg_list =~ (^|[[:space:]])$dep($|[[:space:]]) ]]; then
+          rec $dep
+      fi
+  done
+}
+
+# Get all packages that are still required
+pkgs_to_keep=()
+for pkg in $metapackages; do
+    echo "Gathering packages to keep within $pkg"
+    pkgs_to_keep+=($(rec $pkg) ' ')
+done
+
+# Compare this list to the full package list, and remove unused packages
+pkgs_to_keep=($(echo "${pkgs_to_keep[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+pkgs_to_remove=$(comm -23 <(printf '%s\n' "${all_pkg_list[@]}") <(printf '%s\n' "${pkgs_to_keep[@]}"))
+echo -e "Removing the following packages from the repo: \n${pkgs_to_remove[@]}"
+
+# Remove unused packages from the repository
+repo-remove "$local_path/$repo_name.db.tar.zst" ${pkgs_to_remove[@]}
 
 pkgs=$(aur repo -Su -d $repo_name)
 echo "Upgrading packages"
 
 # Get any dependencies that are within the local repo
 #TODO: Can probably replace this by having a remote and local repo
+IFS=$'\n\t'
 pkg_names=$(aur repo -Su -d $repo_name | awk '{print $1}')
 for pkg in $pkg_names
 do
@@ -125,9 +162,8 @@ for file in $old_files; do
     aws s3 rm \
         --region ${region} \
         "$remote_path/$file"
-    rm "$local_path/$file"
+    rm -f "$local_path/$file"
 done
-
 
 echo "Sync local DB to remote"
 aws s3 sync \
