@@ -113,7 +113,7 @@ pkgs_to_remove=$(comm -23 <(printf '%s\n' "${all_pkg_list[@]}") <(printf '%s\n' 
 echo -e "Removing the following packages from the repo: \n${pkgs_to_remove[@]}"
 
 # Remove unused packages from the repository
-repo-remove "$local_path/$repo_name.db.tar.zst" ${pkgs_to_remove[@]}
+repo-remove "$local_path/$repo_name.db.tar.zst" ${pkgs_to_remove[@]} -s
 
 pkgs=$(aur repo -Su -d $repo_name)
 echo "Upgrading packages"
